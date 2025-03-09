@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths-ignore:
-      - '**/README.md'
+      - "**/README.md"
 
 permissions:
   contents: write
@@ -23,6 +23,9 @@ jobs:
       deployment-type: ${{ steps.detect-deployment.outputs.type }}
     if: github.run_number != 1
     steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Detect deployment
         uses: actions/github-script@v7
         id: detect-deployment
@@ -35,7 +38,7 @@ jobs:
               core.setOutput('type', buildType);
             } catch (error) {
               core.setFailed('GitHub Pages is not configured. Please set up a deployment branch.');
-              core.notice(`https://github.com/${owner}/${repo}/settings/pages#:~:text=from%20a%20branch-,Branch,-Make%20a%20commit`);
+              core.notice(`https://github.com/${owner}/${repo}/settings/pages`);
             }
 
       - uses: actions/checkout@v4
@@ -68,9 +71,6 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
       - name: Deploy
         id: deploy
         uses: actions/deploy-pages@v4
