@@ -23,9 +23,6 @@ jobs:
       deployment-type: ${{ steps.detect-deployment.outputs.type }}
     if: github.run_number != 1
     steps:
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-
       - name: Detect deployment
         uses: actions/github-script@v7
         id: detect-deployment
@@ -37,8 +34,8 @@ jobs:
               const buildType = response.data.build_type;
               core.setOutput('type', buildType);
             } catch (error) {
-              core.setFailed('GitHub Pages is not configured. Please set up a deployment branch.');
-              core.notice(`https://github.com/${owner}/${repo}/settings/pages`);
+              core.setFailed('Please verify that the repository has Pages enabled and configured to build.');
+              core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment] > [Branch])`);
             }
 
       - uses: actions/checkout@v4
@@ -71,6 +68,9 @@ jobs:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
     steps:
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
       - name: Deploy
         id: deploy
         uses: actions/deploy-pages@v4
