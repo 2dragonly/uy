@@ -20,12 +20,14 @@ jobs:
   build:
     runs-on: ubuntu-latest
     outputs:
-      deployment-type: ${{ steps.detect-deployment.outputs.type }}
+      deployment-type: ${{ steps.first-run.outputs.type }}
+      source-branch: ${{ steps.first-run.outputs.sourceBranch }}
+      source-path: ${{ steps.first-run.outputs.sourcePath }}
     if: github.run_number != 1
     steps:
-      - name: Detect deployment
+      - name: First Run
         uses: actions/github-script@v7
-        id: detect-deployment
+        id: first-run
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -34,14 +36,17 @@ jobs:
             try {
               const response = await github.request('GET /repos/{owner}/{repo}/pages', { owner, repo });
               const buildType = response.data.build_type;
-              core.setOutput('type', buildType);
-              console.log(JSON.stringify(response.data, null, 2));
-              console.log(JSON.stringify(context.repo, null, 2));
               const deploymentBranch = response.data.source.branch;
+              const rootDir = response.data.source.path;
+
+              core.setOutput('type', buildType);
+              core.setOutput('sourceBranch', deploymentBranch);
+              core.setOutput('sourcePath', rootDir);
               if (currentBranch === deploymentBranch) {
-                core.setFailed(`Error: The deployment branch '${deploymentBranch}' is the same as the current branch '${currentBranch}'.`);
-              } else {
-                core.notice(`Current branch '${currentBranch}' is different from deployment branch '${deploymentBranch}'.`);
+                if (rootDir === "/") {
+                  core.setFailed(`The current branch '${currentBranch}' is set for deployment.`);
+                  core.warning("To deploy from the same branch, please update the source path to '/docs'.");
+                }
               }
             } catch (error) {
               core.setFailed('Please verify that the repository has Pages enabled and configured to build.');
@@ -108,5 +113,9 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          force_orphan: true
-          keep_files: false
+          user_name: 'github-actions[bot]'
+          user_email: 'github-actions[bot]@users.noreply.github.com'
+          destination_dir: ${{ needs.build.outputs.source-path }}
+          publish_branch: ${{ needs.build.outputs.source-branch }}
+          force_orphan: ${{ needs.build.outputs.source-branch != 'main' }}
+          keep_files: ${{ needs.build.outputs.source-branch != 'main' }}
