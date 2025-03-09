@@ -105,6 +105,11 @@ jobs:
     if: success() && needs.build.outputs.GHPAGES_TYPE == 'legacy'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          fetch-depth: 0
+
       - name: Download artifact
         uses: actions/download-artifact@v4
         with:
@@ -133,9 +138,9 @@ jobs:
           clean: false
           folder: ./dist
           branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
-          target-folder: '.${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}'
+          target-folder: ".${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}"
           single-commit: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
-          commit-message:  ${{ env.MESSAGE }}
+          commit-message: ${{ env.MESSAGE }}
 
       # - name: Deploy to gh-pages
       #   uses: peaceiris/actions-gh-pages@v3
