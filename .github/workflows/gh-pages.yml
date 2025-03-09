@@ -16,8 +16,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     if: github.run_number != 1
+    outputs:
+      GHPAGES_TYPE: ${{ steps.first-run.outputs.GHPAGES_TYPE }}
+      GHPAGES_SOURCE_BRANCH: ${{ steps.first-run.outputs.GHPAGES_SOURCE_BRANCH }}
+      GHPAGES_SOURCE_PATH: ${{ steps.first-run.outputs.GHPAGES_SOURCE_PATH }}
     steps:
       - name: First Run
+        id: first-run
         uses: actions/github-script@v7
         with:
           script: |
@@ -30,9 +35,10 @@ jobs:
               const deploymentBranch = response.data.source.branch;
               const rootDir = response.data.source.path;
 
-              core.exportVariable('GHPAGES_TYPE', buildType);
-              core.exportVariable('GHPAGES_SOURCE_BRANCH', deploymentBranch);
-              core.exportVariable('GHPAGES_SOURCE_PATH', rootDir);
+              core.setOutput('GHPAGES_TYPE', buildType);
+              core.setOutput('GHPAGES_SOURCE_BRANCH', deploymentBranch);
+              core.setOutput('GHPAGES_SOURCE_PATH', rootDir);
+
               if (currentBranch === deploymentBranch) {
                 if (rootDir === "/") {
                   core.setFailed(`The current branch '${currentBranch}' is set for deployment.`);
@@ -75,7 +81,7 @@ jobs:
 
   deploy-workflow:
     needs: build
-    if: success() && env.GHPAGES_TYPE == 'workflow'
+    if: success() && needs.build.outputs.GHPAGES_TYPE == 'workflow'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -90,7 +96,7 @@ jobs:
 
   deploy-legacy:
     needs: build
-    if: success() && env.GHPAGES_TYPE == 'legacy'
+    if: success() && needs.build.outputs.GHPAGES_TYPE == 'legacy'
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
@@ -113,7 +119,7 @@ jobs:
           publish_dir: ./dist
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          destination_dir: '.${{ env.GHPAGES_SOURCE_PATH }}'
-          publish_branch: ${{ env.GHPAGES_SOURCE_BRANCH}}
-          force_orphan: ${{ env.GHPAGES_SOURCE_BRANCH!= 'main' }}
-          keep_files: ${{ env.GHPAGES_SOURCE_BRANCH== 'main' }}
+          destination_dir: '.${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}'
+          publish_branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
+          force_orphan: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
+          keep_files: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH == 'main' }}
