@@ -46,18 +46,12 @@ jobs:
 
               if (currentBranch === deploymentBranch) {
                 if (rootDir === "/") {
-                  core.setFailed(`The current branch '${currentBranch}' is set for deployment.`);
-                  core.warning("To deploy from the same branch, please update the source path to '/docs'.");
-                  core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment] > [Branch])`);
-                } else {
-                  const { data: { protected } } = await github.rest.repos.getBranch({ owner, repo, branch: deploymentBranch });
-                  if (protected) {
-                    core.setOutput('GHPAGES_SOURCE_BRANCH', 'gh-pages');
-                    core.setOutput('GHPAGES_SOURCE_PATH', '/');
-                    core.warning(`The current branch '${currentBranch}' is protected, using 'gh-pages' instead...`);
-                    core.warning(`Update deployment branch from '${deploymentBranch}' to 'gh-pages' and folder path from '${rootDir}' to '/'`);
-                    core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment])`);
-                  }
+                  core.setOutput('GHPAGES_SOURCE_BRANCH', 'gh-pages');
+                  core.setOutput('GHPAGES_SOURCE_PATH', '/');
+                  core.warning(`The current branch '${currentBranch}' is set as the deployment branch.`);
+                  core.warning(`Deployment branch will be switched to 'gh-pages'.`);
+                  core.warning(`Please update source branch from '${deploymentBranch}' to 'gh-pages' and folder path from '${rootDir}' to '/'`);
+                  core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment])`);
                 }
               }
             } catch (error) {
