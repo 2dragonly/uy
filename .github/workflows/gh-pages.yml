@@ -135,8 +135,6 @@ jobs:
           branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
           target-folder: '.${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}'
           single-commit: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
-          git-config-name: 'github-actions[bot]'
-          git-config-email: 'github-actions[bot]@users.noreply.github.com'
           commit-message:  ${{ env.MESSAGE }}
 
       # - name: Deploy to gh-pages
