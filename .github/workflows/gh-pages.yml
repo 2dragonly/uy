@@ -143,7 +143,7 @@ jobs:
   trigger-pages-check:
     runs-on: ubuntu-latest
     needs: [deploy-workflow, deploy-legacy]
-    if: always()  # Ensures this job runs even if dependencies fail
+    if: ${{ always() && !cancelled() && needs.build.result == 'success' }}
     outputs:
       proceed: ${{ steps.set_proceed.outputs.proceed }}
     steps:
