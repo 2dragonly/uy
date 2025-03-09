@@ -19,15 +19,10 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest
-    outputs:
-      deployment-type: ${{ steps.first-run.outputs.type }}
-      source-branch: ${{ steps.first-run.outputs.sourceBranch }}
-      source-path: ${{ steps.first-run.outputs.sourcePath }}
     if: github.run_number != 1
     steps:
       - name: First Run
         uses: actions/github-script@v7
-        id: first-run
         with:
           script: |
             const { owner, repo } = context.repo;
@@ -39,17 +34,24 @@ jobs:
               const deploymentBranch = response.data.source.branch;
               const rootDir = response.data.source.path;
 
-              core.setOutput('type', buildType);
-              core.setOutput('sourceBranch', deploymentBranch);
-              core.setOutput('sourcePath', rootDir);
+              core.exportVariable('GHPAGES_TYPE', buildType);
+              core.exportVariable('GHPAGES_SOURCE_BRANCH', deploymentBranch);
+              core.exportVariable('GHPAGES_SOURCE_PATH', rootDir);
               if (currentBranch === deploymentBranch) {
                 if (rootDir === "/") {
                   core.setFailed(`The current branch '${currentBranch}' is set for deployment.`);
                   core.warning("To deploy from the same branch, please update the source path to '/docs'.");
+                } else {
+                  const { data: { protected } } = await github.rest.repos.getBranch({ owner, repo, branch: deploymentBranch });
+                  if (protected) {
+                    core.warning(`The current branch '${currentBranch}' is protected, using 'gh-pages' instead...`);
+                    core.warning(`Update deployment branch from '${deploymentBranch}' to 'gh-pages' and folder path from '${rootDir}' to '/'`);
+                    core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment])`);
+                  }
                 }
               }
             } catch (error) {
-              core.setFailed('Please verify that the repository has Pages enabled and configured to build.');
+              core.warning('Please verify that the repository has Pages enabled and configured to build.');
               core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment] > [Branch])`);
             }
 
@@ -77,7 +79,7 @@ jobs:
 
   deploy-workflow:
     needs: build
-    if: success() && needs.build.outputs.deployment-type == 'workflow'
+    if: success() && env.GHPAGES_TYPE == 'workflow'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -92,7 +94,7 @@ jobs:
 
   deploy-legacy:
     needs: build
-    if: success() && needs.build.outputs.deployment-type == 'legacy'
+    if: success() && env.GHPAGES_TYPE == 'legacy'
     runs-on: ubuntu-latest
     steps:
       - name: Download artifact
@@ -115,7 +117,7 @@ jobs:
           publish_dir: ./dist
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          destination_dir: '.${{ needs.build.outputs.source-path }}'
-          publish_branch: pages #${{ needs.build.outputs.source-branch }}
-          force_orphan: ${{ needs.build.outputs.source-branch != 'main' }}
-          keep_files: ${{ needs.build.outputs.source-branch == 'main' }}
+          destination_dir: '.${{ env.GHPAGES_SOURCE_PATH }}'
+          publish_branch: ${{ env.GHPAGES_SOURCE_BRANCH}}
+          force_orphan: ${{ env.GHPAGES_SOURCE_BRANCH!= 'main' }}
+          keep_files: ${{ env.GHPAGES_SOURCE_BRANCH== 'main' }}
