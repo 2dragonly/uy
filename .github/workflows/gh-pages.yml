@@ -148,34 +148,9 @@ jobs:
       proceed: ${{ steps.set_proceed.outputs.proceed }}
     steps:
       - name: Determine if at least one job succeeded
-        id: set_proceed
         run: |
           if [[ "${{ needs.deploy-workflow.result }}" == "success" || "${{ needs.deploy-legacy.result }}" == "success" ]]; then
-            echo "proceed=true" >> $GITHUB_ENV
-            echo "proceed=true" >> $GITHUB_OUTPUT
+            echo "proceed=true"
           else
-            echo "proceed=false" >> $GITHUB_ENV
-            echo "proceed=false" >> $GITHUB_OUTPUT
+            echo "proceed=false"
           fi
-
-  trigger-pages:
-    runs-on: ubuntu-latest
-    needs: trigger-pages-check
-    if: needs.trigger-pages-check.outputs.proceed == 'true'
-    steps:
-      - name: Trigger rebuild
-        run: |
-          curl \
-            -X POST \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/pages/builds
-
-      - name: Enforce HTTPS for gh-pages
-        run: |
-          curl \
-            -X PUT \
-            -H "Accept: application/vnd.github.v3+json" \
-            -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            https://api.github.com/repos/${{ github.repository }}/pages \
-            -d '{"https_enforced":true}'
