@@ -115,7 +115,7 @@ jobs:
           publish_dir: ./dist
           user_name: 'github-actions[bot]'
           user_email: 'github-actions[bot]@users.noreply.github.com'
-          destination_dir: ${{ needs.build.outputs.source-path }}
+          destination_dir: '.${{ needs.build.outputs.source-path }}'
           publish_branch: ${{ needs.build.outputs.source-branch }}
           force_orphan: ${{ needs.build.outputs.source-branch != 'main' }}
-          keep_files: ${{ needs.build.outputs.source-branch != 'main' }}
+          keep_files: ${{ needs.build.outputs.source-branch == 'main' }}
