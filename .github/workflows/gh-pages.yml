@@ -120,10 +120,11 @@ jobs:
       - name: Set Commit Message
         id: commit_msg
         run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
           if [[ "${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}" == "/" ]]; then
-            echo "MESSAGE=Deploy: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+            echo "MESSAGE=Deploy: $SHORT_SHA" >> $GITHUB_ENV
           else
-            echo "MESSAGE=Update Docs: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+            echo "MESSAGE=Update Docs: $SHORT_SHA" >> $GITHUB_ENV
           fi
 
       - name: Deploy
