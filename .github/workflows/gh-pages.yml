@@ -130,11 +130,11 @@ jobs:
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          clean: false
           folder: ./dist
           branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
           target-folder: ".${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}"
           single-commit: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
+          clean: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
           commit-message: ${{ env.MESSAGE }}
           token: ${{ secrets.GITHUB_TOKEN }}
           git-config-name: 'github-actions[bot]'
