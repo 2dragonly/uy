@@ -136,6 +136,9 @@ jobs:
           target-folder: ".${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}"
           single-commit: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
           commit-message: ${{ env.MESSAGE }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          git-config-name: 'github-actions[bot]'
+          git-config-email: 'github-actions[bot]@users.noreply.github.com'
 
       # - name: Deploy to gh-pages
       #   uses: peaceiris/actions-gh-pages@v3
