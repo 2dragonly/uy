@@ -29,10 +29,19 @@ jobs:
         with:
           script: |
             const { owner, repo } = context.repo;
+            const currentBranch = context.ref_name;
+
             try {
               const response = await github.request('GET /repos/{owner}/{repo}/pages', { owner, repo });
               const buildType = response.data.build_type;
               core.setOutput('type', buildType);
+
+              const deploymentBranch = response.data.source.branch;
+              if (currentBranch === deploymentBranch) {
+                core.setFailed(`Error: The deployment branch '${deploymentBranch}' is the same as the current branch '${currentBranch}'.`);
+              } else {
+                core.notice(`Current branch '${currentBranch}' is different from deployment branch '${deploymentBranch}'.`);
+              }
             } catch (error) {
               core.setFailed('Please verify that the repository has Pages enabled and configured to build.');
               core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment] > [Branch])`);
