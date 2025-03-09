@@ -143,20 +143,25 @@ jobs:
   trigger-pages-check:
     runs-on: ubuntu-latest
     needs: [deploy-workflow, deploy-legacy]
-    if: success() || failure()  # Always runs regardless of previous job status
+    if: always()  # Ensures this job runs even if dependencies fail
+    outputs:
+      proceed: ${{ steps.set_proceed.outputs.proceed }}
     steps:
       - name: Determine if at least one job succeeded
+        id: set_proceed
         run: |
           if [[ "${{ needs.deploy-workflow.result }}" == "success" || "${{ needs.deploy-legacy.result }}" == "success" ]]; then
-            echo "PROCEED=true" >> $GITHUB_ENV
+            echo "proceed=true" >> $GITHUB_ENV
+            echo "::set-output name=proceed::true"
           else
-            echo "PROCEED=false" >> $GITHUB_ENV
+            echo "proceed=false" >> $GITHUB_ENV
+            echo "::set-output name=proceed::false"
           fi
 
   trigger-pages:
     runs-on: ubuntu-latest
     needs: trigger-pages-check
-    if: env.PROCEED == 'true'
+    if: needs.trigger-pages-check.outputs.proceed == 'true'
     steps:
       - name: Trigger rebuild
         run: |
