@@ -48,6 +48,7 @@ jobs:
                 if (rootDir === "/") {
                   core.setFailed(`The current branch '${currentBranch}' is set for deployment.`);
                   core.warning("To deploy from the same branch, please update the source path to '/docs'.");
+                  core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment] > [Branch])`);
                 } else {
                   const { data: { protected } } = await github.rest.repos.getBranch({ owner, repo, branch: deploymentBranch });
                   if (protected) {
