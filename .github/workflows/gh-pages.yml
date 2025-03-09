@@ -12,6 +12,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -46,6 +50,8 @@ jobs:
                 } else {
                   const { data: { protected } } = await github.rest.repos.getBranch({ owner, repo, branch: deploymentBranch });
                   if (protected) {
+                    core.setOutput('GHPAGES_SOURCE_BRANCH', 'gh-pages');
+                    core.setOutput('GHPAGES_SOURCE_PATH', '/');
                     core.warning(`The current branch '${currentBranch}' is protected, using 'gh-pages' instead...`);
                     core.warning(`Update deployment branch from '${deploymentBranch}' to 'gh-pages' and folder path from '${rootDir}' to '/'`);
                     core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment])`);
