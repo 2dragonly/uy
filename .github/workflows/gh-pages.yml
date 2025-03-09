@@ -118,14 +118,35 @@ jobs:
       - name: Configure Pages
         uses: actions/configure-pages@v5
 
-      - name: Deploy to gh-pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Set Commit Message
+        id: commit_msg
+        run: |
+          if [[ "${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}" == "/" ]]; then
+            echo "MESSAGE=Deploy: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+          else
+            echo "MESSAGE=Update Docs: ${{ github.event.head_commit.message }}" >> $GITHUB_ENV
+          fi
+
+      - name: Deploy
+        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-          user_name: 'github-actions[bot]'
-          user_email: 'github-actions[bot]@users.noreply.github.com'
-          destination_dir: '.${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}'
-          publish_branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
-          force_orphan: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
-          keep_files: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH == 'main' }}
+          clean: false
+          folder: ./dist
+          branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
+          target-folder: '.${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}'
+          single-commit: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
+          git-config-name: 'github-actions[bot]'
+          git-config-email: 'github-actions[bot]@users.noreply.github.com'
+          commit-message:  ${{ env.MESSAGE }}
+
+      # - name: Deploy to gh-pages
+      #   uses: peaceiris/actions-gh-pages@v3
+      #   with:
+      #     github_token: ${{ secrets.GITHUB_TOKEN }}
+      #     publish_dir: ./dist
+      #     user_name: 'github-actions[bot]'
+      #     user_email: 'github-actions[bot]@users.noreply.github.com'
+      #     destination_dir: '.${{ needs.build.outputs.GHPAGES_SOURCE_PATH }}'
+      #     publish_branch: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH }}
+      #     force_orphan: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH != 'main' }}
+      #     keep_files: ${{ needs.build.outputs.GHPAGES_SOURCE_BRANCH == 'main' }}
