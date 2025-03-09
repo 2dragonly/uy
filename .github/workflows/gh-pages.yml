@@ -49,7 +49,7 @@ jobs:
                   core.setOutput('GHPAGES_SOURCE_PATH', '/');
                   core.warning(`The current branch '${currentBranch}' is set as the deployment branch.`);
                   core.warning(`Deployment branch will be switched to 'gh-pages'.`);
-                  core.warning(`Please update source branch from '${deploymentBranch}' to 'gh-pages'${rootDir === "/" ? ` and folder path from '${rootDir}' to '/'.` : "."}`);
+                  core.warning(`Please update source branch from '${deploymentBranch}' to 'gh-pages'${rootDir.includes("docs") ? ` and folder path from '${rootDir}' to '/'.` : "."}`);
                   core.notice(`https://github.com/${owner}/${repo}/settings/pages ([Build and deployment])`);
               }
             } catch (error) {
