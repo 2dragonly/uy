@@ -35,7 +35,7 @@ jobs:
               const response = await github.request('GET /repos/{owner}/{repo}/pages', { owner, repo });
               const buildType = response.data.build_type;
               core.setOutput('type', buildType);
-
+              console.log(JSON.stringify(response.data, null, 2));
               const deploymentBranch = response.data.source.branch;
               if (currentBranch === deploymentBranch) {
                 core.setFailed(`Error: The deployment branch '${deploymentBranch}' is the same as the current branch '${currentBranch}'.`);
